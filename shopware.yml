@@ -1,0 +1,141 @@
+databases:
+
+    shopware:
+
+        truncate:
+            - s_es_backlog
+            - s_core_payment_data
+            - s_core_payment_instance
+            - s_core_sessions
+            - s_core_sessions_backend
+#           holds potential sensitive data
+#            - s_order_attributes
+#            - s_order_billingaddress_attributes
+#            - s_order_billingaddress_attributes
+#            - s_user_addresses_attributes
+#            - s_user_shippingaddress_attributes
+#            - s_user_billingaddress_attributes
+#           delete these for slimmer development databases
+#           - s_articles_also_bought_ro
+#           - s_articles_similar_shown_ro
+#           - s_articles_top_seller_ro
+#           - s_emarketing_lastarticles
+
+        tables:
+            s_campaigns_mailaddresses:
+                hash_email:
+                    - email
+            s_campaigns_maildata:
+                hash_value:
+                    - firstname
+                    - lastname
+                    - street
+                hash_email:
+                    - email
+            s_core_auth:
+                nullify:
+                    - password
+                    - apiKey
+                    - sessionID
+            s_core_payment_data:
+                hash_value:
+                    - account_holder
+                    - account_number
+                    - bank_code
+                    - bic
+                    - iban
+            s_core_payment_instance:
+                hash_value:
+                    - firstname
+                    - lastname
+                    - address
+                    - account_holder
+                    - account_number
+                    - bank_code
+                    - bic
+                    - iban
+            s_emarketing_vouchers:
+                hash_value:
+                    - vouchercode
+            s_emarketing_voucher_codes:
+                hash_value:
+                    - code
+            s_order:
+                hash_value:
+                    - transactionID
+                    - customercomment
+                    - internalcomment
+                    - trackingcode
+                random_ip:
+                    - remote_addr
+            s_order_billingaddress:
+                hash_value:
+                    - company
+                    - department
+                    - firstname
+                    - lastname
+                    - street
+                    - phone
+                    - ustid
+                    - additional_address_line1
+                    - additional_address_line2
+            s_order_shippingaddress:
+                hash_value:
+                    - company
+                    - department
+                    - firstname
+                    - lastname
+                    - street
+# https://github.com/shopware/shopware/pull/1172
+#                   - phone
+                    - additional_address_line1
+                    - additional_address_line2
+            s_statistics_pool:
+                random_ip:
+                    - remoteaddr
+            s_statistics_currentusers:
+                random_ip:
+                    - remoteaddr
+            s_user:
+                hash_value:
+                    - password
+                    - firstname
+                    - lastname
+                hash_email:
+                    - email
+                nullify:
+                    - sessionID
+                    - confirmationkey
+            s_user_addresses:
+                hash_value:
+                    - company
+                    - department
+                    - firstname
+                    - lastname
+                    - street
+                    - phone
+                    - ustid
+                    - additional_address_line1
+                    - additional_address_line2
+            s_user_billingaddress:
+                hash_value:
+                    - company
+                    - department
+                    - firstname
+                    - lastname
+                    - street
+                    - phone
+                    - ustid
+                    - additional_address_line1
+                    - additional_address_line2
+            s_user_shippingaddress:
+                hash_value:
+                    - company
+                    - department
+                    - firstname
+                    - lastname
+                    - street
+# https://github.com/shopware/shopware/pull/1172
+#                   - phone
+                    - additional_address_line1
+                    - additional_address_line2
