@@ -26,7 +26,7 @@ def get_deletes(config):
         if 'delete' in data:
             fields = []
             for f, v in data['delete'].iteritems():
-                fields.append('`%s` = "%s"' % (f, v))
+                fields.append('`%s` %s' % (f, v))
             statement = 'DELETE FROM `%s` WHERE ' % table + ' AND '.join(fields)
             sql.append(statement)
     return sql
@@ -53,24 +53,43 @@ def get_updates(config):
             if operation == 'nullify':
                 for field in listify(details):
                     updates.append("`%s` = NULL" % field)
+            elif operation == 'empty_string':
+                for field in listify(details):
+                    updates.append("`%s` = ''" % field)
             elif operation == 'random_int':
                 for field in listify(details):
                     updates.append("`%s` = ROUND(RAND()*1000000)" % field)
             elif operation == 'random_ip':
                 for field in listify(details):
                     updates.append("`%s` = INET_NTOA(RAND()*1000000000)" % field)
-            elif operation == 'random_email':
+            elif operation == 'id_email':
                 for field in listify(details):
-                    updates.append("`%s` = CONCAT(id, '@mozilla.com')"
-                                   % field)
-            elif operation == 'random_username':
+                    updates.append("`%s` = CONCAT('userid_', id, '@localhost')" % field)
+            elif operation == 'id_username':
                 for field in listify(details):
-                    updates.append("`%s` = CONCAT('_user_', id)" % field)
+                    updates.append("`%s` = CONCAT('userid_', id)" % field)
+            elif operation == 'hash_zipcode':
+                for field in listify(details):
+                    updates.append("`%s` = LPAD(FLOOR(1 + (RAND() * 99998)), 5, '1')" % field)
+            elif operation == 'random_ustid':
+                for field in listify(details):
+                    updates.append("`%s` = CONCAT('DE', LPAD(FLOOR(1 + (RAND() * 999999998)), 9, '0'))" % field)
+            elif operation == 'random_legal_isodate':
+                for field in listify(details):
+                    updates.append("`%s` = DATE_FORMAT(DATE_SUB(NOW(), INTERVAL FLOOR(18*365 + RAND() * 81*365) DAY), GET_FORMAT(DATE,'ISO'))" % field)
             elif operation == 'hash_value':
                 for field in listify(details):
-                    updates.append("`%(field)s` = LEFT(MD5(CONCAT(@common_hash_secret, `%(field)s`)),8)"
+                    updates.append("`%(field)s` = MD5(CONCAT(@common_hash_secret, `%(field)s`))"
+                                   % dict(field=field))
+            elif operation == 'hash_length':
+                for field in listify(details):
+                    updates.append("`%(field)s` = LEFT(MD5(CONCAT(@common_hash_secret, `%(field)s`)), LENGTH(`%(field)s`))"
                                    % dict(field=field))
             elif operation == 'hash_email':
+                for field in listify(details):
+                    updates.append("`%(field)s` = CONCAT(LEFT(MD5(CONCAT(@common_hash_secret, `%(field)s`)), 12), '@localhost')"
+                                   % dict(field=field))
+            elif operation == 'hash_emailuser':
                 for field in listify(details):
                     updates.append("`%(field)s` = CONCAT(LEFT(MD5(CONCAT(@common_hash_secret, `%(field)s`)), 12), '@', SUBSTRING_INDEX(`%(field)s`, '@', -1))"
                                    % dict(field=field))
