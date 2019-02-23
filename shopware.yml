@@ -1,51 +1,72 @@
+# shopware.yml anonymizer based on 'davedash/mysql-anonymous'
+#
+# @shopware_schema_version can be used, see "postscript" section
+#
+# caveats:
+#  * user/order attributes can hold more sensitive information beyond default nullifieds
+#    => adjust to project needs
+#  * mind triggers before executing - use @disable_trigger variable if they allow for it
+# opinionated:
+#  * customernumber is kept for debugging purposes, only the data owner is able to deanonymize
+#  * zipcode/city can be kept if no other correlation is given
+#  * the _ro truncates are done due to their usually large table size
+#    => check data_length + index_length in information_schema.tables if you want to keep them
+#  * use s_core_auth delete rule to retain admin webui users, unsafe with production credentials
+#
 databases:
-
     shopware:
-
         truncate:
-            - s_es_backlog
-            - s_core_payment_data
-            - s_core_payment_instance
             - s_core_sessions
             - s_core_sessions_backend
-#           holds potential sensitive data
-#            - s_order_attributes
-#            - s_order_billingaddress_attributes
-#            - s_order_billingaddress_attributes
-#            - s_user_addresses_attributes
-#            - s_user_shippingaddress_attributes
-#            - s_user_billingaddress_attributes
-#           delete these for slimmer development databases
-#           - s_articles_also_bought_ro
-#           - s_articles_similar_shown_ro
-#           - s_articles_top_seller_ro
-#           - s_emarketing_lastarticles
-
+            - s_articles_also_bought_ro
+            - s_articles_similar_shown_ro
+            - s_articles_top_seller_ro
+            - s_es_backlog
+            - s_customer_search_index
+            - s_emarketing_lastarticles
+            - s_campaigns_logs
+            - s_statistics_article_impression
+            - s_statistics_search
+            - s_statistics_visitors
         tables:
+            s_articles_vote:
+                hash_email:
+                    - email
+                hash_length:
+                    - name
             s_campaigns_mailaddresses:
                 hash_email:
                     - email
             s_campaigns_maildata:
-                hash_value:
+                hash_length:
                     - firstname
                     - lastname
                     - street
                 hash_email:
                     - email
             s_core_auth:
-                nullify:
+                #delete:
+                #   email: "NOT LIKE '%@localhost' AND `email` NOT LIKE '%@example.com'"
+                id_username:
+                    - username
+                hash_length:
+                    - name
+                hash_emailuser:
+                    - email
+                empty_string:
                     - password
+                nullify:
                     - apiKey
                     - sessionID
             s_core_payment_data:
-                hash_value:
+                hash_length:
                     - account_holder
                     - account_number
                     - bank_code
                     - bic
                     - iban
             s_core_payment_instance:
-                hash_value:
+                hash_length:
                     - firstname
                     - lastname
                     - address
@@ -54,91 +75,193 @@ databases:
                     - bank_code
                     - bic
                     - iban
-            s_emarketing_vouchers:
+            s_core_optin:
                 hash_value:
+                    - hash
+                empty_string:
+                    - data
+            s_crontab:
+                empty_string:
+                    - data
+            s_emarketing_partner:
+                hash_length:
+                    - idcode
+                    - company
+                    - contact
+                    - street
+                    - zipcode
+                    - city
+                    - country
+                empty_string:
+                    - email
+                    - web
+                    - profil
+                random_int:
+                    - phone
+                    - fax
+            s_emarketing_vouchers:
+                hash_length:
                     - vouchercode
             s_emarketing_voucher_codes:
-                hash_value:
+                hash_length:
                     - code
-            s_order:
-                hash_value:
-                    - transactionID
-                    - customercomment
-                    - internalcomment
-                    - trackingcode
-                random_ip:
-                    - remote_addr
-            s_order_billingaddress:
-                hash_value:
-                    - company
-                    - department
-                    - firstname
-                    - lastname
-                    - street
-                    - phone
-                    - ustid
-                    - additional_address_line1
-                    - additional_address_line2
-            s_order_shippingaddress:
-                hash_value:
-                    - company
-                    - department
-                    - firstname
-                    - lastname
-                    - street
-# https://github.com/shopware/shopware/pull/1172
-#                   - phone
-                    - additional_address_line1
-                    - additional_address_line2
-            s_statistics_pool:
-                random_ip:
-                    - remoteaddr
+            s_emarketing_tellafriend:
+                hash_length:
+                    - recipient
             s_statistics_currentusers:
                 random_ip:
                     - remoteaddr
+            s_statistics_pool:
+                random_ip:
+                    - remoteaddr
+            s_statistics_referer:
+                empty_string:
+                    - referer
             s_user:
                 hash_value:
                     - password
+                hash_length:
                     - firstname
                     - lastname
+                # kept for debugging purposes
+                #   - customernumber
                 hash_email:
                     - email
                 nullify:
                     - sessionID
+                    - login_token
+                empty_string:
                     - confirmationkey
+                    - referer
+                random_legal_isodate:
+                    - birthday
             s_user_addresses:
-                hash_value:
+                hash_length:
                     - company
                     - department
                     - firstname
                     - lastname
                     - street
-                    - phone
-                    - ustid
+                    - zipcode
+                    - city
+                empty_string:
                     - additional_address_line1
                     - additional_address_line2
+                random_int:
+                    - phone
+                random_ustid:
+                    - ustid
+            s_user_addresses_attributes:
+                nullify:
+                    - text1
+                    - text2
+                    - text3
+                    - text4
+                    - text5
+                    - text6
             s_user_billingaddress:
-                hash_value:
+                hash_length:
                     - company
                     - department
                     - firstname
                     - lastname
                     - street
+                    - zipcode
+                    - city
+                empty_string:
+                    - additional_address_line1
+                    - additional_address_line2
+                random_int:
                     - phone
+                random_ustid:
                     - ustid
-                    - additional_address_line1
-                    - additional_address_line2
+            s_user_billingaddress_attributes:
+                nullify:
+                    - text1
+                    - text2
+                    - text3
+                    - text4
+                    - text5
+                    - text6
             s_user_shippingaddress:
-                hash_value:
+                hash_length:
                     - company
                     - department
                     - firstname
                     - lastname
                     - street
-# https://github.com/shopware/shopware/pull/1172
-#                   - phone
+                    - zipcode
+                    - city
+                empty_string:
                     - additional_address_line1
                     - additional_address_line2
+            s_user_shippingaddress_attributes:
+                nullify:
+                    - text1
+                    - text2
+                    - text3
+                    - text4
+                    - text5
+                    - text6
+            s_order:
+                empty_string:
+                    - transactionID
+                    - customercomment
+                    - internalcomment
+                    - trackingcode
+                    - referer
+                random_ip:
+                    - remote_addr
+            s_order_billingaddress:
+                hash_length:
+                    - company
+                    - department
+                    - firstname
+                    - lastname
+                    - street
+                    - zipcode
+                    - city
+                empty_string:
+                    - additional_address_line1
+                    - additional_address_line2
+                random_int:
+                    - phone
+                random_ustid:
+                    - ustid
+            s_order_billingaddress_attributes:
+                nullify:
+                    - text1
+                    - text2
+                    - text3
+                    - text4
+                    - text5
+                    - text6
+            s_order_shippingaddress:
+                hash_length:
+                    - company
+                    - department
+                    - firstname
+                    - lastname
+                    - street
+                    - zipcode
+                    - city
+                empty_string:
+                    - additional_address_line1
+                    - additional_address_line2
+                # enable on shopware >= 5.3.3, schema_version >= 951
+                #random_int:
+                #    - phone
+            s_order_shippingaddress_attributes:
+                nullify:
+                    - text1
+                    - text2
+                    - text3
+                    - text4
+                    - text5
+                    - text6
+            s_plugin_widgets_notes:
+                empty_string:
+                    - notes
         postscript:
             - 'SET @random_phone = CONCAT("UPDATE s_order_shippingaddress SET phone = ROUND(RAND()*100000)");
                SELECT IF(@shopware_schema_version >= 951, @random_phone, "SELECT 1") INTO @phone_update;
