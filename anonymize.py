@@ -22,10 +22,10 @@ def get_deletes(config):
     database = config.get('database', {})
     tables = database.get('tables', [])
     sql = []
-    for table, data in tables.iteritems():
+    for table, data in tables.items():
         if 'delete' in data:
             fields = []
-            for f, v in data['delete'].iteritems():
+            for f, v in data['delete'].items():
                 fields.append('`%s` %s' % (f, v))
             statement = 'DELETE FROM `%s` WHERE ' % table + ' AND '.join(fields)
             sql.append(statement)
@@ -47,9 +47,9 @@ def get_updates(config):
     database = config.get('database', {})
     tables = database.get('tables', [])
     sql = []
-    for table, data in tables.iteritems():
+    for table, data in tables.items():
         updates = []
-        for operation, details in data.iteritems():
+        for operation, details in data.items():
             if operation == 'nullify':
                 for field in listify(details):
                     updates.append("`%s` = NULL" % field)
@@ -106,10 +106,10 @@ def anonymize(config):
     database = config.get('database', {})
 
     if 'name' in database:
-         print "USE `%s`;" % database['name']
+         print("USE `%s`;" % database['name'])
 
-    print "SET @disable_trigger = 1;"
-    print "SET FOREIGN_KEY_CHECKS=0;"
+    print("SET @disable_trigger = 1;")
+    print("SET FOREIGN_KEY_CHECKS=0;")
 
     sql = []
     sql.extend(get_truncates(config))
@@ -117,11 +117,11 @@ def anonymize(config):
     sql.extend(get_updates(config))
     sql.extend(get_postscript(config))
     for stmt in sql:
-        print stmt + ';'
+        print(stmt + ';')
 
-    print "SET FOREIGN_KEY_CHECKS=1;"
-    print "SET @disable_trigger = NULL;"
-    print
+    print("SET FOREIGN_KEY_CHECKS=1;")
+    print("SET @disable_trigger = NULL;")
+    print("")
 
 if __name__ == '__main__':
 
@@ -134,17 +134,17 @@ if __name__ == '__main__':
         files = [ 'anonymize.yml' ]
 
     for f in files:
-        print "--"
-        print "-- %s" %f
-        print "--"
-        print "SET @common_hash_secret=rand();"
-        print "SET @shopware_schema_version = (SELECT MAX(version) FROM s_schema_version);"
-        print ""
+        print("--")
+        print("-- %s" %f)
+        print("--")
+        print("SET @common_hash_secret=rand();")
+        print("SET @shopware_schema_version = (SELECT MAX(version) FROM s_schema_version);")
+        print("")
         cfg = yaml.load(open(f))
         if 'databases' not in cfg:
             anonymize(cfg)
         else:
             databases = cfg.get('databases')
-            for name, sub_cfg in databases.items():
-                print "USE `%s`;" % name
+            for name, sub_cfg in list(databases.items()):
+                print("USE `%s`;" % name)
                 anonymize({'database': sub_cfg})
