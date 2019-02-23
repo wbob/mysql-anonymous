@@ -108,6 +108,7 @@ def anonymize(config):
     if 'name' in database:
          print "USE `%s`;" % database['name']
 
+    print "SET @disable_trigger = 1;"
     print "SET FOREIGN_KEY_CHECKS=0;"
 
     sql = []
@@ -119,6 +120,7 @@ def anonymize(config):
         print stmt + ';'
 
     print "SET FOREIGN_KEY_CHECKS=1;"
+    print "SET @disable_trigger = NULL;"
     print
 
 if __name__ == '__main__':
