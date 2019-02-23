@@ -139,3 +139,8 @@ databases:
 #                   - phone
                     - additional_address_line1
                     - additional_address_line2
+        postscript:
+            - 'SET @random_phone = CONCAT("UPDATE s_order_shippingaddress SET phone = ROUND(RAND()*100000)");
+               SELECT IF(@shopware_schema_version >= 951, @random_phone, "SELECT 1") INTO @phone_update;
+               PREPARE phone_update FROM @phone_update; EXECUTE phone_update;
+               DEALLOCATE PREPARE phone_update'

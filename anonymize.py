@@ -31,6 +31,14 @@ def get_deletes(config):
             sql.append(statement)
     return sql
 
+def get_postscript(config):
+    database = config.get('database', {})
+    postscript = database.get('postscript', [])
+    sql = []
+    for plainsql in postscript:
+        sql.append('%s' % plainsql)
+    return sql
+
 listify = lambda x: x if isinstance(x, list) else [x]
 
 def get_updates(config):
@@ -87,6 +95,7 @@ def anonymize(config):
     sql.extend(get_truncates(config))
     sql.extend(get_deletes(config))
     sql.extend(get_updates(config))
+    sql.extend(get_postscript(config))
     for stmt in sql:
         print stmt + ';'
 
@@ -108,6 +117,7 @@ if __name__ == '__main__':
         print "-- %s" %f
         print "--"
         print "SET @common_hash_secret=rand();"
+        print "SET @shopware_schema_version = (SELECT MAX(version) FROM s_schema_version);"
         print ""
         cfg = yaml.load(open(f))
         if 'databases' not in cfg:
